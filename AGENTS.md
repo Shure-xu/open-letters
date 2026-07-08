@@ -2,14 +2,117 @@
 
 ## 项目概览
 
-本项目是 `open letters` 的官网/订阅落地页，来源于 Open Design 导出的单页 `index.html`，已迁移为可部署的 Next.js 项目。
+本项目是 `open letters` 的 newsletter 订阅项目。当前产品形态非常聚焦：用户进入首页，阅读产品介绍，只需要留下邮箱地址即可订阅。订阅后，我们每天定时向订阅用户发送一封邮件，内容包含 AI 最新资讯，以及 AI 产品经理视角下的判断、拆解和思考。
+
+当前代码是这个 newsletter 项目的官网/订阅落地页，来源于 Open Design 导出的单页 `index.html`，已迁移为可部署的 Next.js 项目。
 
 核心定位：
 
 - 品牌：`open letters`
-- 内容：每天早上 8:00，一封关于 AI 的信
-- 目标用户：认真做产品的人、AI 产品经理、关注 AI 产品动态的人
+- 产品形态：AI newsletter / 邮件订阅服务
+- 用户动作：在首页输入邮箱并订阅
+- 交付内容：每天定时发送 AI 最新资讯和 AI 产品经理视角的思考
+- 核心价值：帮助订阅用户用较短时间理解当天重要 AI 动态，并判断它们对产品、行业和工作方式意味着什么
+- 目标用户：认真做产品的人、AI 产品经理、创业者、关注 AI 产品动态和产品机会的人
 - 当前页面能力：静态介绍页、往期亮点展示、邮箱订阅表单交互
+
+## 产品形态与核心工作逻辑
+
+`open letters` 不是一个复杂 SaaS，也不是内容门户。它的核心是一个轻量、稳定、可信的 AI newsletter。
+
+用户路径：
+
+1. 用户访问首页。
+2. 用户理解 newsletter 的定位：每天早上收到一封关于 AI 的信。
+3. 用户输入邮箱地址。
+4. 系统记录订阅邮箱。
+5. 订阅成功后，用户进入每日邮件发送名单。
+6. 后续每天定时向订阅用户发送邮件。
+
+每日内容工作流：
+
+1. 收集当天 AI 重要资讯，包括模型发布、产品更新、行业动态、工具变化和关键观点。
+2. 筛选真正值得产品人关注的信息，避免堆砌新闻。
+3. 用 AI 产品经理视角补充判断：这件事解决了什么问题、影响谁、可能改变什么产品机会、是否值得跟进。
+4. 整理成一封短邮件，目标阅读时间约 5 分钟。
+5. 每天固定时间发送给订阅用户。
+
+产品承诺：
+
+- 简洁：用户只需要邮箱即可订阅。
+- 稳定：每天定时发送。
+- 有判断：不只是 AI 新闻摘要，而是带有产品经理视角的分析。
+- 低负担：邮件篇幅控制在短时间可读完。
+- 可持续：内容结构稳定，方便用户形成阅读习惯。
+
+内容栏目可围绕现有页面中的三个板块延展：
+
+- 今日要闻：筛选过的当天 AI 重点动态。
+- PM 视角：从产品经理角度解释一条关键新闻背后的产品含义。
+- 可用的东西：当天值得尝试的工具、提示词、数据点或实践方法。
+
+## 后续产品开发方向
+
+后续功能应优先围绕 newsletter 的订阅、发送、管理和内容生产展开，不要偏离“用户提供邮箱 -> 每日收到 AI newsletter”的主线。
+
+优先级较高的方向：
+
+- 将当前前端订阅表单接入真实后端。
+- 使用 Supabase 存储订阅用户邮箱、订阅状态、创建时间、退订 token 等信息。
+- 增加重复订阅检查。
+- 增加退订链接和退订状态管理。
+- 增加定时发送任务，例如每天早上 8:00 发送邮件。
+- 增加邮件内容管理或生成流程。
+- 增加发送日志、失败重试和基础统计。
+
+不应优先做的方向：
+
+- 不要把首页改成复杂门户。
+- 不要增加与 newsletter 无关的账号系统。
+- 不要增加社交、社区、仪表盘等偏离当前定位的功能，除非用户明确要求。
+- 不要为了“更像 SaaS”而重做视觉或业务结构。
+
+## 订阅数据与后端原则
+
+当前页面中的订阅表单主要是前端交互迁移：它会校验邮箱、展示成功态，并使用 `localStorage` 保存本地订阅状态。这不是最终生产级订阅系统。
+
+真实生产逻辑建议：
+
+- 前端提交邮箱到 API Route、Server Action 或后端服务。
+- 后端写入 Supabase。
+- Supabase 表建议至少包含：邮箱、订阅状态、来源、创建时间、更新时间、退订 token、最近发送时间。
+- 邮箱应做唯一约束。
+- 后端需要校验邮箱格式，避免只依赖前端校验。
+- 退订链接应使用不可猜测 token。
+- 不要在前端暴露 Supabase service role key。
+
+建议数据模型草案：
+
+```txt
+subscribers
+  id uuid primary key
+  email text unique not null
+  status text not null default 'active'
+  source text
+  unsubscribe_token text unique
+  created_at timestamptz default now()
+  updated_at timestamptz default now()
+  last_sent_at timestamptz
+```
+
+建议发送日志草案：
+
+```txt
+email_sends
+  id uuid primary key
+  subscriber_id uuid references subscribers(id)
+  issue_id text
+  status text
+  provider_message_id text
+  error_message text
+  sent_at timestamptz
+  created_at timestamptz default now()
+```
 
 技术栈：
 
@@ -254,6 +357,16 @@ supabase  enabled  OAuth
 - 如工具列表中没有 Supabase 工具，重启 Codex、重新打开项目线程，或开新线程后再试。
 - 使用 Supabase MCP 前优先做只读检查，例如列出项目、列出表、读取 schema；不要直接写入或删除数据，除非用户明确要求。
 
+在本项目中，Supabase 的预期角色是 newsletter 后端数据层，优先用于：
+
+- 保存订阅用户邮箱。
+- 管理订阅状态：`active`、`unsubscribed`、`bounced` 等。
+- 存储退订 token。
+- 存储每日邮件发送日志。
+- 支撑后续订阅 API、退订 API、发送任务和内容运营后台。
+
+使用 Supabase MCP 做开发时，先读取当前 schema，再决定是否新增表或迁移。任何会影响生产数据的写操作都应先说明影响范围。
+
 ## 阿里云域名与 DNS
 
 域名：
@@ -276,6 +389,8 @@ dns10.hichina.com
 ```
 
 推荐继续使用阿里云 DNS，不必把 nameserver 改到 Vercel。需要在阿里云「云解析 DNS」中配置记录。
+
+在本项目中，阿里云目前主要承担域名购买和 DNS 解析角色；业务应用部署在 Vercel，订阅数据计划由 Supabase 管理。除非用户明确要求，不要把应用迁移到阿里云服务器。
 
 推荐解析记录：
 
@@ -371,6 +486,14 @@ https://github.com/Shure-xu/open-letters
 ```
 
 此前 Vercel CLI 自动连接 GitHub 仓库失败，原因是 Vercel 账号还没有绑定 GitHub Login Connection；CLI 直接部署不受影响。
+
+每次涉及 newsletter 核心流程的修改，都应额外检查：
+
+- 首页邮箱输入框是否仍然清晰可见。
+- 订阅成功态是否仍然正常。
+- 邮箱校验是否正常。
+- 如果已接入后端，重复订阅和错误提示是否正常。
+- 如果修改发送逻辑，是否会误发、重复发送或发给已退订用户。
 
 ## 源文件与迁移背景
 
