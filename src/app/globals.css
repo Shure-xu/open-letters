@@ -305,6 +305,12 @@ h1 .hl {
   transform: scale(0.97);
 }
 
+.sub-row button:disabled {
+  cursor: default;
+  opacity: 0.72;
+  transform: none;
+}
+
 .sub-note {
   font-size: var(--text-sm);
   color: var(--meta);

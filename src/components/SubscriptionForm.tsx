@@ -63,6 +63,7 @@ export function SubscriptionForm({
   const [fallbackEmail, setFallbackEmail] = useState<string | null>(null);
   const [note, setNote] = useState(defaultNote);
   const [noteState, setNoteState] = useState<NoteState>("default");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const storedEmail = useSyncExternalStore(
     subscribeToSubscriberStore,
@@ -79,7 +80,7 @@ export function SubscriptionForm({
     setNoteState("default");
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const value = email.trim();
@@ -96,6 +97,49 @@ export function SubscriptionForm({
       setNoteState("error");
       inputRef.current?.focus();
       return;
+    }
+
+    setIsSubmitting(true);
+    setNote(subscribeCopy.submitting);
+    setNoteState("default");
+
+    try {
+      const response = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: value,
+          source: formId === "subscribe" ? "hero" : "cta"
+        })
+      });
+
+      if (!response.ok) {
+        let message = subscribeCopy.subscribeFailed;
+
+        try {
+          const result = (await response.json()) as { error?: string };
+
+          if (response.status === 400 && result.error) {
+            message = subscribeCopy.invalidEmail;
+          }
+        } catch {
+          // Keep the default failure message.
+        }
+
+        setNote(message);
+        setNoteState("error");
+        inputRef.current?.focus();
+        return;
+      }
+    } catch {
+      setNote(subscribeCopy.subscribeFailed);
+      setNoteState("error");
+      inputRef.current?.focus();
+      return;
+    } finally {
+      setIsSubmitting(false);
     }
 
     try {
@@ -137,11 +181,12 @@ export function SubscriptionForm({
           />
           <button
             type="submit"
+            disabled={isSubmitting}
             data-od-id={
               inputId === "email" ? "subscribe-button" : "subscribe-button-2"
             }
           >
-            {subscribeCopy.button}
+            {isSubmitting ? subscribeCopy.submitting : subscribeCopy.button}
           </button>
         </div>
         <p

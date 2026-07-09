@@ -92,9 +92,11 @@ export const subscribeCopy = {
   placeholder: "输入你的邮箱地址",
   ariaLabel: "邮箱地址",
   button: "绑定并订阅",
+  submitting: "正在订阅",
   successTitle: "订阅成功,欢迎加入",
   heroDefaultNote: "免费。每天一封,随时可退订。",
   ctaDefaultNote: "已有读者每天早上和我们一起开始。",
   missingEmail: "请输入邮箱地址再订阅。",
-  invalidEmail: "这个邮箱看起来不太对,检查一下?"
+  invalidEmail: "这个邮箱看起来不太对,检查一下?",
+  subscribeFailed: "订阅暂时没有成功,请稍后再试。"
 };

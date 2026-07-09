@@ -74,7 +74,22 @@
 
 ## 订阅数据与后端原则
 
-当前页面中的订阅表单主要是前端交互迁移：它会校验邮箱、展示成功态，并使用 `localStorage` 保存本地订阅状态。这不是最终生产级订阅系统。
+当前页面中的订阅表单应先在前端校验邮箱格式，然后调用服务端接口写入 Supabase。服务端必须再次校验邮箱，并只在 Supabase 写入成功后返回订阅成功。
+
+当前实现入口：
+
+```txt
+src/components/SubscriptionForm.tsx
+src/app/api/subscribe/route.ts
+supabase/schema.sql
+```
+
+上线前必须确认：
+
+- Supabase 已执行 `supabase/schema.sql`。
+- Vercel 已配置 `SUPABASE_URL`。
+- Vercel 已配置服务端变量 `SUPABASE_SERVICE_ROLE_KEY`。
+- 不要把 `SUPABASE_SERVICE_ROLE_KEY` 暴露给浏览器或写进仓库。
 
 真实生产逻辑建议：
 

@@ -19,7 +19,15 @@ npm run build
 
 ## Deploy to Vercel
 
-Import this `next-project` directory in Vercel and use the default Next.js settings. No environment variables are required.
+Import this `next-project` directory in Vercel and use the default Next.js settings.
+
+Required environment variables:
+
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+Before accepting subscribers, run the SQL in `supabase/schema.sql` in the
+Supabase project.
 
 ## Source notes
 
