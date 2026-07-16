@@ -90,6 +90,9 @@ supabase/schema.sql
 - Vercel 已配置 `SUPABASE_URL`。
 - Vercel 已配置服务端变量 `SUPABASE_SERVICE_ROLE_KEY`。
 - 不要把 `SUPABASE_SERVICE_ROLE_KEY` 暴露给浏览器或写进仓库。
+- 阿里云邮件推送使用华东 1 SMTP，发信地址为 `newsletter@mail.xushure.asia`。
+- SMTP 凭据只存放在 Vercel 环境变量中，不得写进仓库或暴露给浏览器。
+- 受保护的 `POST /api/email/test` 仅用于小规模 SMTP 验证，最多允许 5 个有效订阅者。
 
 真实生产逻辑建议：
 
