@@ -16,7 +16,14 @@ type SubscriptionFormProps = {
 
 type NoteState = "default" | "error" | "ok";
 
-let subscribedEmailSnapshot: string | null = null;
+type WelcomeEmailStatus = "sent" | "already-sent" | "failed";
+
+type SubscriberSnapshot = {
+  email: string;
+  welcomeEmail: WelcomeEmailStatus;
+};
+
+let subscribedEmailSnapshot: SubscriberSnapshot | null = null;
 const subscriberListeners = new Set<() => void>();
 
 function getSubscriberSnapshot() {
@@ -35,8 +42,8 @@ function subscribeToSubscriberStore(onStoreChange: () => void) {
   };
 }
 
-function setSubscribedEmailSnapshot(email: string) {
-  subscribedEmailSnapshot = email;
+function setSubscribedEmailSnapshot(snapshot: SubscriberSnapshot) {
+  subscribedEmailSnapshot = snapshot;
   subscriberListeners.forEach((listener) => listener());
 }
 
@@ -59,9 +66,13 @@ export function SubscriptionForm({
     getSubscriberSnapshot,
     getServerSubscriberSnapshot
   );
-  const subscribedEmail = storedEmail;
-  const subscribed = Boolean(subscribedEmail);
+  const subscribedEmail = storedEmail?.email;
+  const subscribed = Boolean(storedEmail);
   const maskedEmail = subscribedEmail ? maskEmail(subscribedEmail) : "你";
+  const resolvedSuccessEnding =
+    storedEmail?.welcomeEmail === "failed"
+      ? "订阅已经生效。欢迎邮件暂时延迟,我们会尽快处理。"
+      : successEnding;
 
   function handleInputChange(value: string) {
     setEmail(value);
@@ -91,6 +102,8 @@ export function SubscriptionForm({
     setIsSubmitting(true);
     setNote(subscribeCopy.submitting);
     setNoteState("default");
+
+    let welcomeEmail: WelcomeEmailStatus = "failed";
 
     try {
       const response = await fetch("/api/subscribe", {
@@ -122,6 +135,11 @@ export function SubscriptionForm({
         inputRef.current?.focus();
         return;
       }
+
+      const result = (await response.json()) as {
+        welcomeEmail?: WelcomeEmailStatus;
+      };
+      welcomeEmail = result.welcomeEmail ?? "failed";
     } catch {
       setNote(subscribeCopy.subscribeFailed);
       setNoteState("error");
@@ -131,7 +149,7 @@ export function SubscriptionForm({
       setIsSubmitting(false);
     }
 
-    setSubscribedEmailSnapshot(value);
+    setSubscribedEmailSnapshot({ email: value, welcomeEmail });
     setNoteState("ok");
   }
 
@@ -195,7 +213,7 @@ export function SubscriptionForm({
           <span className="addr" id={addressId}>
             {maskedEmail}
           </span>{" "}
-          加入订阅名单。{successEnding}
+          加入订阅名单。{resolvedSuccessEnding}
         </p>
       </div>
     </>

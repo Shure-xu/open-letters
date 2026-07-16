@@ -36,6 +36,12 @@ Required environment variables:
 Before accepting subscribers, run the SQL in `supabase/schema.sql` in the
 Supabase project.
 
+After a subscriber is stored successfully, `POST /api/subscribe` immediately
+sends the local `welcome-v1` email template through Aliyun Direct Mail and
+records the result in `email_sends`. The `(subscriber_id, issue_id)` unique
+index prevents duplicate welcome messages when the same address is submitted
+again.
+
 The protected `POST /api/email/test` endpoint verifies the Aliyun Direct Mail
 SMTP connection and sends one clearly labeled test email to active subscribers.
 It rejects requests without `Authorization: Bearer <EMAIL_TEST_SECRET>` and

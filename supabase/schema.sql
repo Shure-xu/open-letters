@@ -31,3 +31,6 @@ create index if not exists email_sends_subscriber_id_idx
 
 create index if not exists email_sends_created_at_idx
   on public.email_sends (created_at desc);
+
+create unique index if not exists email_sends_subscriber_issue_idx
+  on public.email_sends (subscriber_id, issue_id);

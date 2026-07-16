@@ -25,7 +25,7 @@ export function Hero() {
           successId="success"
           addressId="success-addr"
           defaultNote={subscribeCopy.heroDefaultNote}
-          successEnding="明天早上 8:00,第一封信会准时抵达你的收件箱。"
+          successEnding="欢迎邮件已发送,请检查收件箱。明天早上 8:00,第一封信会准时抵达。"
         />
 
         <div className="hero-meta" data-od-id="hero-meta">

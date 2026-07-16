@@ -93,6 +93,8 @@ supabase/schema.sql
 - 阿里云邮件推送使用华东 1 SMTP，发信地址为 `newsletter@mail.xushure.asia`。
 - SMTP 凭据只存放在 Vercel 环境变量中，不得写进仓库或暴露给浏览器。
 - 受保护的 `POST /api/email/test` 仅用于小规模 SMTP 验证，最多允许 5 个有效订阅者。
+- 新订阅通过 `POST /api/subscribe` 入库后立即发送本地维护的 `welcome-v1` 欢迎邮件，并在 `email_sends` 中记录结果。
+- `email_sends` 对 `(subscriber_id, issue_id)` 使用唯一索引，重复提交同一邮箱不得重复发送欢迎邮件。
 
 真实生产逻辑建议：
 

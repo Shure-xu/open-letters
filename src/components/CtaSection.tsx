@@ -15,7 +15,7 @@ export function CtaSection() {
           successId="success-2"
           addressId="success-addr-2"
           defaultNote={subscribeCopy.ctaDefaultNote}
-          successEnding="明天早上 8:00,第一封信会准时抵达。"
+          successEnding="欢迎邮件已发送,请检查收件箱。明天早上 8:00,第一封信会准时抵达。"
         />
       </div>
     </section>
