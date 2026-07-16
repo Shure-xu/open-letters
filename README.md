@@ -33,4 +33,4 @@ Supabase project.
 
 - Original source files are in `../.source`.
 - The source archive contains no external assets, images, fonts, videos, or audio.
-- The original subscription JavaScript was migrated to a small React Client Component because it uses form events and `localStorage`.
+- The original subscription JavaScript was migrated to a small React Client Component. A successful subscription is shared between both forms for the current page view and resets after a refresh.

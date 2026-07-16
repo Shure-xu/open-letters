@@ -2,11 +2,7 @@
 
 import { FormEvent, useRef, useState, useSyncExternalStore } from "react";
 import { subscribeCopy } from "@/data/page-content";
-import {
-  EMAIL_PATTERN,
-  SUBSCRIBER_STORAGE_KEY,
-  maskEmail
-} from "@/lib/subscription";
+import { EMAIL_PATTERN, maskEmail } from "@/lib/subscription";
 
 type SubscriptionFormProps = {
   formId: string;
@@ -20,20 +16,11 @@ type SubscriptionFormProps = {
 
 type NoteState = "default" | "error" | "ok";
 
-const SUBSCRIBER_CHANGE_EVENT = "openletters:subscriber-change";
+let subscribedEmailSnapshot: string | null = null;
+const subscriberListeners = new Set<() => void>();
 
 function getSubscriberSnapshot() {
-  if (typeof window === "undefined") return null;
-
-  try {
-    const saved = JSON.parse(
-      localStorage.getItem(SUBSCRIBER_STORAGE_KEY) || "null"
-    ) as { email?: string } | null;
-
-    return saved?.email ?? null;
-  } catch {
-    return null;
-  }
+  return subscribedEmailSnapshot;
 }
 
 function getServerSubscriberSnapshot() {
@@ -41,13 +28,16 @@ function getServerSubscriberSnapshot() {
 }
 
 function subscribeToSubscriberStore(onStoreChange: () => void) {
-  window.addEventListener("storage", onStoreChange);
-  window.addEventListener(SUBSCRIBER_CHANGE_EVENT, onStoreChange);
+  subscriberListeners.add(onStoreChange);
 
   return () => {
-    window.removeEventListener("storage", onStoreChange);
-    window.removeEventListener(SUBSCRIBER_CHANGE_EVENT, onStoreChange);
+    subscriberListeners.delete(onStoreChange);
   };
+}
+
+function setSubscribedEmailSnapshot(email: string) {
+  subscribedEmailSnapshot = email;
+  subscriberListeners.forEach((listener) => listener());
 }
 
 export function SubscriptionForm({
@@ -60,7 +50,6 @@ export function SubscriptionForm({
   successEnding
 }: SubscriptionFormProps) {
   const [email, setEmail] = useState("");
-  const [fallbackEmail, setFallbackEmail] = useState<string | null>(null);
   const [note, setNote] = useState(defaultNote);
   const [noteState, setNoteState] = useState<NoteState>("default");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,7 +59,7 @@ export function SubscriptionForm({
     getSubscriberSnapshot,
     getServerSubscriberSnapshot
   );
-  const subscribedEmail = storedEmail ?? fallbackEmail;
+  const subscribedEmail = storedEmail;
   const subscribed = Boolean(subscribedEmail);
   const maskedEmail = subscribedEmail ? maskEmail(subscribedEmail) : "你";
 
@@ -142,17 +131,7 @@ export function SubscriptionForm({
       setIsSubmitting(false);
     }
 
-    try {
-      localStorage.setItem(
-        SUBSCRIBER_STORAGE_KEY,
-        JSON.stringify({ email: value, at: "subscribed" })
-      );
-      window.dispatchEvent(new Event(SUBSCRIBER_CHANGE_EVENT));
-    } catch {
-      // Keep success visible even when localStorage is unavailable.
-    }
-
-    setFallbackEmail(value);
+    setSubscribedEmailSnapshot(value);
     setNoteState("ok");
   }
 

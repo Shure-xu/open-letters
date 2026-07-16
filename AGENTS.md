@@ -528,4 +528,4 @@ https://github.com/Shure-xu/open-letters
 - 以 `index.html` 的最终视觉和交互为准。
 - 保留原始可见文案。
 - CSS token、断点、动画、hover/focus/active 状态应尽量维持原样。
-- 订阅表单使用 React state 和 localStorage，成功态与原始脚本保持一致。
+- 订阅表单使用页面内共享的 React 内存状态：提交成功后首页和页尾表单同步显示成功态，刷新页面后重新显示表单，不使用 localStorage 持久化。

@@ -1,5 +1,3 @@
-export const SUBSCRIBER_STORAGE_KEY = "openletters:subscriber";
-
 export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function maskEmail(address: string) {
