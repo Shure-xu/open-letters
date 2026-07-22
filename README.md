@@ -32,6 +32,13 @@ Required environment variables:
 - `ALIYUN_SMTP_PASSWORD`
 - `NEWSLETTER_FROM_NAME`
 - `EMAIL_TEST_SECRET`
+- `NEWSLETTER_PREVIEW_SECRET`
+- `CRON_SECRET`
+- `AI_API_BASE_URL`
+- `AI_API_KEY`
+- `AI_TEXT_MODEL`
+- `AI_IMAGE_MODEL`
+- `AI_IMAGE_QUALITY`
 
 Before accepting subscribers, run the SQL in `supabase/schema.sql` in the
 Supabase project.
@@ -46,6 +53,28 @@ The protected `POST /api/email/test` endpoint verifies the Aliyun Direct Mail
 SMTP connection and sends one clearly labeled test email to active subscribers.
 It rejects requests without `Authorization: Bearer <EMAIL_TEST_SECRET>` and
 refuses to send when more than five active subscribers exist.
+
+## Daily newsletter workflow
+
+Vercel Cron calls `GET /api/cron/daily-newsletter` every day at `00:00` UTC,
+which is `08:00` in Asia/Shanghai. The route fetches the Follow Builders feeds,
+generates and humanizes the Chinese issue, creates two illustrations, applies
+quality gates, archives the issue, and then sends it to active subscribers.
+
+Each issue is archived before email delivery in the private Supabase Storage
+bucket `newsletter-issues`. The archive path is:
+
+```text
+YYYY/MM/DD/<issue-id>/
+  issue.md
+  issue.json
+  01-hero.png
+  02-field-note.png
+```
+
+If source, text, image, or archive validation fails, the route stops before
+sending. `email_sends` continues to provide per-subscriber idempotency and
+delivery status.
 
 ## Source notes
 

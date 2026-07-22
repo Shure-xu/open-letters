@@ -49,6 +49,15 @@ export async function getActiveSubscribers(): Promise<Subscriber[]> {
   return (await response.json()) as Subscriber[];
 }
 
+export async function hasSuccessfulEmailSend(issueId: string) {
+  const response = await supabaseRequest(
+    `email_sends?select=id&issue_id=eq.${encodeURIComponent(issueId)}&status=eq.sent&limit=1`
+  );
+  const rows = (await response.json()) as Array<{ id: string }>;
+
+  return rows.length === 1;
+}
+
 type EmailSendLog = {
   subscriberId: string;
   issueId: string;
@@ -179,6 +188,19 @@ export async function updateEmailSend(
       })
     }
   );
+}
+
+export async function markSubscriberLastSent(subscriberId: string) {
+  await supabaseRequest(`subscribers?id=eq.${encodeURIComponent(subscriberId)}`, {
+    method: "PATCH",
+    headers: {
+      Prefer: "return=minimal"
+    },
+    body: JSON.stringify({
+      last_sent_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })
+  });
 }
 
 export async function createEmailSendLog(log: EmailSendLog) {

@@ -95,6 +95,10 @@ supabase/schema.sql
 - 受保护的 `POST /api/email/test` 仅用于小规模 SMTP 验证，最多允许 5 个有效订阅者。
 - 新订阅通过 `POST /api/subscribe` 入库后立即发送本地维护的 `welcome-v1` 欢迎邮件，并在 `email_sends` 中记录结果。
 - `email_sends` 对 `(subscriber_id, issue_id)` 使用唯一索引，重复提交同一邮箱不得重复发送欢迎邮件。
+- `GET /api/cron/daily-newsletter` 由 Vercel Cron 每天 `00:00 UTC` 调用，对应北京时间 `08:00`。
+- 每期先从 Follow Builders feed 取材，再完成中文初稿、Humanizer 二次编辑、两张 16:9 配图和自动质量检查。
+- 每期发送前必须归档到私有 Supabase Storage bucket `newsletter-issues`；至少保存 `issue.md`、`issue.json` 和两张配图。
+- 任一来源、正文、图片或归档检查失败时，当期不得发送；正常发送继续依赖 `email_sends` 的 `(subscriber_id, issue_id)` 唯一约束防重。
 
 真实生产逻辑建议：
 
